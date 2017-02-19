@@ -13,22 +13,6 @@ var filename = 'assets/[name].[hash:8].[ext]';
 
 var viewPath = path.join(__dirname, '..', 'view');
 
-var staticFilePath = '';
-var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
-  staticFilePath = path.join(viewPath, dir);
-  if (fs.statSync(staticFilePath).isDirectory()) {
-    entries.push(new HtmlWebpackPlugin({
-      xhtml: true,
-      template: staticFilePath + '/app.pug',
-      filename: dir + '.html',
-    }))
-  }
-
-  return entries;
-}, []);
-
-console.log('static file entries : ', staticEntries);
-
 var entries = {
   app: [
     'webpack-dev-server/client?http://localhost:3000/',
@@ -37,9 +21,37 @@ var entries = {
   ],
 };
 
+var rootPath = path.join(__dirname, '..', 'app');
+var outputRootPath = path.join('..', 'build');
+var entryFilePath = '';
+var appEntries = fs.readdirSync(rootPath).reduce(function(entries, dirname) {
+  entryFilePath = path.join(rootPath, dirname);
+  
+  if (fs.statSync(entryFilePath).isDirectory()) {
+    entries[path.join(outputRootPath, dirname)] = path.join(entryFilePath, 'index.js');
+  }
+  return entries;  
+}, {});
+
+var staticFilePath = '';
+var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
+  staticFilePath = path.join(viewPath, dir);
+  if (fs.statSync(staticFilePath).isDirectory()) {
+    entries.push(new HtmlWebpackPlugin({
+      xhtml: true,
+      template: staticFilePath + '/app.pug',
+      filename: dir + '.html',
+      chunks: [path.join(outputRootPath, dir)],
+    }))
+  }
+
+  return entries;
+}, []);
+
 module.exports = {
   devtool: 'source-map',
-  entry: entries,
+  // entry: entries,
+  entry: appEntries,
   context: path.join(__dirname, '..'),  
   output: {
     path: 'build',
@@ -69,11 +81,11 @@ module.exports = {
         'NODE_ENV': JSON.stringify(isProd ? 'production' : 'development')
       }
     }),
-    new ExtractTextPlugin("style.css", { allChunks: true }),
-    new HtmlWebpackPlugin({
-      xhtml: true,
-      template: './view/index.pug'
-    }),
+    new ExtractTextPlugin('[name].css', { allChunks: true }),
+    // new HtmlWebpackPlugin({
+    //   xhtml: true,
+    //   template: './view/index.pug'
+    // }),
   ].concat(isDev ? [
       new webpack.HotModuleReplacementPlugin(),
     ] : [
