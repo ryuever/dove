@@ -1,16 +1,35 @@
-import path from 'path';
-import webpack from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+var path = require('path');
+var fs = require('fs');
+var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const env = process.env.NODE_ENV;
+var env = process.env.NODE_ENV;
 
-const isDev = env === 'development';
-const isProd = env === 'production';
+var isDev = env === 'development';
+var isProd = env === 'production';
 
-const filename = 'assets/[name].[hash:8].[ext]';
+var filename = 'assets/[name].[hash:8].[ext]';
 
-const entries = {
+var viewPath = path.join(__dirname, '..', 'view');
+
+var staticFilePath = '';
+var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
+  staticFilePath = path.join(viewPath, dir);
+  if (fs.statSync(staticFilePath).isDirectory()) {
+    entries.push(new HtmlWebpackPlugin({
+      xhtml: true,
+      template: staticFilePath + '/app.pug',
+      filename: dir + '.html',
+    }))
+  }
+
+  return entries;
+}, []);
+
+console.log('static file entries : ', staticEntries);
+
+var entries = {
   app: [
     'webpack-dev-server/client?http://localhost:3000/',
     'webpack/hot/dev-server',
@@ -51,18 +70,14 @@ module.exports = {
       }
     }),
     new ExtractTextPlugin("style.css", { allChunks: true }),
+    new HtmlWebpackPlugin({
+      xhtml: true,
+      template: './view/index.pug'
+    }),
   ].concat(isDev ? [
       new webpack.HotModuleReplacementPlugin(),
-      new HtmlWebpackPlugin({
-        xhtml: true,
-        template: './index.pug'
-      }),
     ] : [
       new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false }, sourceMap: false }),
-      new HtmlWebpackPlugin({
-        xhtml: true,
-        template: './index.pug'
-      }),
     ]
-  ),
+  ).concat(staticEntries),
 }
