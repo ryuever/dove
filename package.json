@@ -5,13 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=development webpack-dev-server --inline --compress --config ./webpack/webpack.config.babel.js --progress --display-error-details --port 3000",
-    "build": "NODE_ENV=production webpack --config ./webpack/webpack.config.babel.js --progress --display-error-details"
+    "start": "NODE_ENV=development webpack-dev-server --inline --compress --config ./webpack/webpack.config.js --progress --display-error-details --port 3000",
+    "build": "rimraf build && NODE_ENV=production webpack --config ./webpack/webpack.config.js --progress --display-error-details"
   },
   "author": "Youchao Liu <liuyouchao111@gmail.com>",
   "license": "ISC",
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
     "css-loader": "^0.26.1",
+    "eslint": "^3.15.0",
+    "eslint-loader": "^1.6.1",
+    "eslint-plugin-flow-vars": "^0.5.0",
+    "eslint-plugin-react": "^6.10.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
     "html-webpack-plugin": "^2.24.1",
@@ -19,6 +24,7 @@
     "postcss-loader": "^1.2.1",
     "pug": "^2.0.0-beta6",
     "pug-loader": "^2.3.0",
+    "rimraf": "^2.6.0",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "webpack": "^1.14.0",

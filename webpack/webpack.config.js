@@ -26,11 +26,11 @@ var outputRootPath = path.join('..', 'build');
 var entryFilePath = '';
 var appEntries = fs.readdirSync(rootPath).reduce(function(entries, dirname) {
   entryFilePath = path.join(rootPath, dirname);
-  
+
   if (fs.statSync(entryFilePath).isDirectory()) {
-    entries[path.join(outputRootPath, dirname)] = path.join(entryFilePath, 'index.js');
+    entries[path.join(outputRootPath, dirname, 'app')] = path.join(entryFilePath, 'index.js');
   }
-  return entries;  
+  return entries;
 }, {});
 
 var staticFilePath = '';
@@ -41,7 +41,7 @@ var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
       xhtml: true,
       template: staticFilePath + '/app.pug',
       filename: dir + '.html',
-      chunks: [path.join(outputRootPath, dir)],
+      chunks: [path.join(outputRootPath, dir, 'app')],
     }))
   }
 
@@ -50,17 +50,19 @@ var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
 
 module.exports = {
   devtool: 'source-map',
-  // entry: entries,
   entry: appEntries,
-  context: path.join(__dirname, '..'),  
+  context: path.join(__dirname, '..'),
   output: {
     path: 'build',
     publicPath: '/',
     filename: isProd ? '[name].[hash].js' : '[name].js',
-    chunkFilename: isProd ? '[name].[hash].js' : '[name].js'    
+    chunkFilename: isProd ? '[name].[hash].js' : '[name].js'
   },
 
   module: {
+    preLoaders: [
+      { test: /\.js$/, loader: 'eslint', exclude: /node_modules/ }
+    ],
     loaders: [
       { test: /\.js$/, loader: 'babel', query: { cacheDirectory: true }, exclude: /node_modules/ },
       { test: /\.css$/, loader: ExtractTextPlugin.extract('style', `css${isProd ? '?minimize&discardComments' : ''}!postcss`) },
@@ -70,9 +72,9 @@ module.exports = {
       { test: /\.ttf((\?|\#)[\?\#\w\d_-]+)?$/, loader: 'url', query: { limit: 100, minetype: 'application/octet-stream', name: filename } },
       { test: /\.eot((\?|\#)[\?\#\w\d_-]+)?$/, loader: 'url', query: { limit: 100, name: filename } },
       { test: /\.svg((\?|\#)[\?\#\w\d_-]+)?$/, loader: 'url', query: { limit: 10000, minetype: 'image/svg+xml', name: filename } },
-      { test: /\.pug$/, loader: 'pug', query: { pretty: true } },      
+      { test: /\.pug$/, loader: 'pug', query: { pretty: true } },
     ]
-  },  
+  },
 
   plugins: [
     new webpack.NoErrorsPlugin(),
@@ -82,14 +84,15 @@ module.exports = {
       }
     }),
     new ExtractTextPlugin('[name].css', { allChunks: true }),
-    // new HtmlWebpackPlugin({
-    //   xhtml: true,
-    //   template: './view/index.pug'
-    // }),
   ].concat(isDev ? [
       new webpack.HotModuleReplacementPlugin(),
     ] : [
       new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false }, sourceMap: false }),
     ]
   ).concat(staticEntries),
+
+  eslint: {
+    configFile: '.eslintrc.yml'
+  },
+
 }
