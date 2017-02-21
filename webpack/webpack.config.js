@@ -13,14 +13,6 @@ var filename = 'assets/[name].[hash:8].[ext]';
 
 var viewPath = path.join(__dirname, '..', 'view');
 
-var entries = {
-  app: [
-    'webpack-dev-server/client?http://localhost:3000/',
-    'webpack/hot/dev-server',
-    path.resolve(__dirname, '..', 'app', 'index.js'),
-  ],
-};
-
 var rootPath = path.join(__dirname, '..', 'app');
 var outputRootPath = path.join('..', 'build');
 var entryFilePath = '';
@@ -51,7 +43,7 @@ var staticEntries = fs.readdirSync(viewPath).reduce(function(entries, dir) {
 module.exports = {
   devtool: 'source-map',
   entry: appEntries,
-  context: path.join(__dirname, '..'),
+  // context: path.join(__dirname, '..'),
   output: {
     path: 'build',
     publicPath: '/',
@@ -96,3 +88,4 @@ module.exports = {
   },
 
 }
+// site helper
